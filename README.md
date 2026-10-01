@@ -37,3 +37,27 @@ Each checkpoint has an ID, display metadata, latitude/longitude, XP value, physi
 4. Aggregate event ingestion and organizer funnel/crowd-distribution analytics.
 5. Sponsor reward inventory/redemption and anti-abuse controls.
 6. Organizer-validated route, accessibility and safety data.
+
+
+## Local full stack
+Install the Supabase CLI, then:
+```bash
+supabase start
+supabase db reset
+python3 -m http.server 8080
+```
+Copy `config.example.js` to `config.js` and use the local/public anon key only. Never put a service-role key in browser or native client code.
+
+## Edge Functions
+`verify-checkpoint` validates a checkpoint token server-side and records completion. `claim-reward` checks server-side checkpoint completion before issuing a one-time redemption token. Static codes in the UI remain demo-only.
+
+## Native
+```bash
+cd native
+npm install
+npx expo start
+```
+For EAS preview builds, configure an `EXPO_TOKEN` GitHub Actions secret and run the **Native Build** workflow manually.
+
+## Deployment
+The **Deploy PWA** workflow is ready for GitHub Pages after merge to `main`. Supabase migrations/seed/functions can be deployed after linking a Supabase project. Deployment credentials are intentionally not stored in this repository.

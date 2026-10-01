@@ -1,0 +1,8 @@
+window.HQBackend=(()=>{
+ const cfg=window.HQ_CONFIG||{},enabled=Boolean(cfg.supabaseUrl&&cfg.supabaseAnonKey);
+ const sid=localStorage.getItem("hq_sid")||crypto.randomUUID();localStorage.setItem("hq_sid",sid);
+ async function request(path,options={}){if(!enabled)return null;const r=await fetch(cfg.supabaseUrl+"/rest/v1/"+path,{...options,headers:{"apikey":cfg.supabaseAnonKey,"Authorization":"Bearer "+cfg.supabaseAnonKey,"Content-Type":"application/json","Prefer":"return=minimal",...(options.headers||{})}});if(!r.ok)throw new Error("Backend "+r.status);return r.status===204?null:r.json()}
+ async function track(festivalId,type,data={}){if(!enabled)return false;const body={festival_id:festivalId,session_id:sid,event_type:type,checkpoint_slug:data.checkpoint||null,metadata:Object.fromEntries(Object.entries(data).filter(([k])=>k!=="checkpoint"))};try{await request("quest_events",{method:"POST",body:JSON.stringify(body)});return true}catch(e){console.warn(e);return false}}
+ async function loadFestival(id){if(!enabled)return null;try{const festivals=await request("festivals?id=eq."+encodeURIComponent(id)+"&published=eq.true&select=*");const cps=await request("checkpoints?festival_id=eq."+encodeURIComponent(id)+"&published=eq.true&select=slug,name,place,clue,lat,lon,radius_m,xp,sort_order&order=sort_order");if(!festivals?.[0]||!cps)return null;return {festival:festivals[0],checkpoints:cps}}catch(e){console.warn(e);return null}}
+ return {enabled,sessionId:sid,track,loadFestival};
+})();

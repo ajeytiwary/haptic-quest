@@ -2,7 +2,7 @@ const F=window.FESTIVAL;
 const defaults={view:"quest",done:[],demo:false,strong:true,visual:true,large:false,reduce:false,onboarded:false,events:[]};
 let state={...defaults,...JSON.parse(localStorage.getItem("hq")||"{}")},watch=null,demoTimer=null,position=null,mapInstance=null;
 const $=s=>document.querySelector(s),save=()=>localStorage.setItem("hq",JSON.stringify(state)),cp=()=>F.checkpoints.find(x=>!state.done.includes(x.id)),xp=()=>F.checkpoints.filter(x=>state.done.includes(x.id)).reduce((a,x)=>a+x.xp,0);
-function event(type,data={}){state.events.push({type,at:new Date().toISOString(),...data});state.events=state.events.slice(-100);save()}
+function event(type,data={}){state.events.push({type,at:new Date().toISOString(),...data});state.events=state.events.slice(-100);save();if(window.HQBackend?.enabled)HQBackend.track(F.id,type,data)}
 function vibrate(d){if(navigator.vibrate)navigator.vibrate(state.strong?[d,Math.round(d/2),d]:d)}
 function dist(a,b,c,d){const R=6371e3,p=x=>x*Math.PI/180,A=Math.sin(p(c-a)/2)**2+Math.cos(p(a))*Math.cos(p(c))*Math.sin(p(d-b)/2)**2;return 2*R*Math.atan2(Math.sqrt(A),Math.sqrt(1-A))}
 function complete(x,method="proximity"){if(!x||state.done.includes(x.id))return;state.done.push(x.id);event("checkpoint_complete",{checkpoint:x.id,method});vibrate(220);save();render()}

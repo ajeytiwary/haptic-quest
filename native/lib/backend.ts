@@ -1,0 +1,8 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+const url=process.env.EXPO_PUBLIC_SUPABASE_URL||"",key=process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY||"";
+export const backendEnabled=Boolean(url&&key);
+export async function sessionId(){let s=await AsyncStorage.getItem("hq_sid");if(!s){s=crypto.randomUUID();await AsyncStorage.setItem("hq_sid",s)}return s}
+async function call(path:string,body:unknown){if(!backendEnabled)return null;const r=await fetch(`${url}/functions/v1/${path}`,{method:"POST",headers:{apikey:key,Authorization:`Bearer ${key}`,"Content-Type":"application/json"},body:JSON.stringify(body)});const j=await r.json();if(!r.ok)throw new Error(j.error||`Backend ${r.status}`);return j}
+export async function verifyCheckpoint(festivalId:string,checkpointSlug:string,token:string){return call("verify-checkpoint",{festivalId,checkpointSlug,token,sessionId:await sessionId()})}
+export async function claimReward(festivalId:string){return call("claim-reward",{festivalId,sessionId:await sessionId()})}
+export async function track(festivalId:string,eventType:string,checkpoint?:string,metadata:Record<string,unknown>={}){if(!backendEnabled)return;const forbidden=["lat","lon","latitude","longitude","accuracy","position","location"];const clean=Object.fromEntries(Object.entries(metadata).filter(([k])=>!forbidden.includes(k)));await fetch(`${url}/rest/v1/quest_events`,{method:"POST",headers:{apikey:key,Authorization:`Bearer ${key}`,"Content-Type":"application/json","Prefer":"return=minimal"},body:JSON.stringify({festival_id:festivalId,session_id:await sessionId(),event_type:eventType,checkpoint_slug:checkpoint||null,metadata:clean})}).catch(()=>{})}

@@ -1,0 +1,26 @@
+name: Native Build
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: native
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run typecheck
+      - run: npx expo-doctor
+      - name: EAS build
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "EXPO_TOKEN is not configured; validation succeeded and build is skipped."
+            exit 0
+          fi
+          npx eas-cli build --platform all --profile preview --non-interactive

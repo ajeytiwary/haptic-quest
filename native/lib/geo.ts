@@ -1,0 +1,1 @@
+export function distanceMeters(aLat:number,aLon:number,bLat:number,bLon:number){const R=6371e3,p=(x:number)=>x*Math.PI/180;const A=Math.sin(p(bLat-aLat)/2)**2+Math.cos(p(aLat))*Math.cos(p(bLat))*Math.sin(p(bLon-aLon)/2)**2;return 2*R*Math.atan2(Math.sqrt(A),Math.sqrt(1-A))}
